@@ -1,0 +1,38 @@
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+**/.vscode
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+data/
+
+### Django ###
+*.log
+*.pot
+*.pyc
+**/__pycache__/
+core/__pycache__/**
+env/
+venv/
+
+*.sqlite3
+
+**/.idea/*
+**/**/*.swp
+**/migrations/*
+**/__pycache__/*
+.DS_Store
+**/media/**
+app/media/*
+.env

@@ -1,0 +1,35 @@
+#
+# My own website, dirtymonkey.co.uk has been used as an example here – which requires NGINX,
+# PostgreSQL and Gunicorn to run (memcached is not essential). This is how I would run Gunicorn
+# within a virtualenv. Change the paths to suite your needs.
+#
+[Unit]
+Description=Production version of base
+Requires=nginx.service postgresql-9.5.service
+#Wants=memcached.service
+Before=nginx.service
+After=postgresql-9.5.service
+
+[Service]
+WorkingDirectory=/usr/local/src/base_kahroba/base
+Environment="DJANGO_SETTINGS_MODULE=base.settings.production"
+PIDFile=/run/base.pid
+Type=forking
+KillMode=process
+Restart=always
+ExecStart=/usr/local/src/env/base/bin/gunicorn               \
+          --group nginx                                          \
+          --user base                                           \
+          --workers 4                                           \
+          --bind=unix:/run/base.socket                             \
+          --pid=/run/base.pid                                 \
+          --limit-request-line=8188 \
+          --pythonpath=/usr/local/src/base_kahroba/base         \
+          --error-logfile=/var/base/gunicorn.error                 \
+          --daemon                                              \
+          base.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+[Install]
+# When should this service be triggered? (this is the equivalent of SysV's runlevel 3)
+WantedBy=multi-user.target

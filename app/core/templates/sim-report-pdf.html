@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+  box-sizing: border-box;
+}
+/* Add a gray background color with some padding */
+body {
+  padding: 20px;
+  background: #f1f1f1;
+}
+.header {
+  padding: 10px;
+  font-size: 14px;
+  text-align: right;
+}
+
+/* Create two unequal columns that floats next to each other */
+/* Left column */
+.leftcolumn {   
+  float: left;
+  width: 75%;
+}
+
+/* Right column */
+.rightcolumn {
+  float: left;
+  width: 25%;
+  padding-left: 20px;
+}
+
+/* Fake image */
+.fakeimg {
+  background-color: #aaa;
+  width: 100%;
+  padding: 5px;
+}
+
+/* Add a card effect for articles */
+.card {
+   background-color: white;
+   padding: 20px;
+   margin-top: 20px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Footer */
+.footer {
+  padding: 20px;
+  text-align: center;
+  background: #ddd;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="width: 100%">
+      {% if user_img_status == True %}
+        <div style="width: 30%;float: left;text-align: left;"><img src="{{user_img}}" style="width: 100px;border-radius: 5px;"/></div>
+      {% else %}
+      <div style="width: 30%;float: left;text-align: left;"><img src="https://dl.base.ir/logo/person1.jpg" style="width: 100px;border-radius: 5px;"/></div>
+      {% endif %}
+      <div style="width: 40%;float: left;"><h2 style="text-align: center !important;">گزارش فعالیت {{sim.name}}</h2></div>
+      <div style="width: 30%;float: left;margin-left:auto"><img src="https://dl.base.ir/logo/intro.png" style="width: 100px;text-align: left !important"/></div>
+  </div>
+
+
+
+
+
+</div>
+
+<div class="row">
+  <div class="leftcolumn">
+    <div class="card" style="text-align: right;">
+        <div class="fakeimg"> <p style="text-align: center;">گزارش کار</p></div>
+        {{ sim_report.content|safe }}
+    </div>
+    <div class="card">
+        {% for i in sim_img %}
+        <img src="{{i.img_addr}}" style="width: 50%;border-radius: 5px;float: left"/>
+        {% endfor %}
+    </div>
+  </div>
+  <div class="rightcolumn">
+    <div class="card">
+        <div class="fakeimg"> <p style="text-align: center;">مشخصات کاربر</p></div>
+        <p style="text-align: center;">{{ user }}</p>
+        <p style="text-align: center;">{{ user_nid }}</p>
+    </div>
+    <div class="card">
+        <div class="fakeimg"> <p style="text-align: center;">تاریخچه تمرین</p></div>
+        {% for i in exercise_report %}
+        <div class="row" style="border-bottom:1px solid;">
+            <div class="leftcolumn" style="width: 30%;text-align:center">
+                <p>{{ i.percent }} ٪</p>
+            </div>
+
+            <div class="rightcolumn" style="width: 60%;text-align:center">
+                <p>{{ i.finish_at }}</p>
+            </div>
+            <div class="rightcolumn" style="width: 10%;">
+                <p>1</p>
+             </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="card">
+        <div class="fakeimg"> <p style="text-align: center;">تاریخچه آزمون</p></div>
+        {% for i in quiz_report %}
+        <div class="row" style="border-bottom:1px solid;">
+            <div class="leftcolumn" style="width: 30%;text-align:center">
+                <p>{{ i.percent }} ٪</p>
+            </div>
+
+            <div class="rightcolumn" style="width: 60%;text-align:center">
+                <p>{{ i.finish_at }}</p>
+            </div>
+            <div class="rightcolumn" style="width: 10%;">
+                <p>1</p>
+             </div>
+        </div>
+        {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <h3>آزتو، آزمایشگاه اختصاصی تو</h3>
+</div>
+
+</body>
+</html>

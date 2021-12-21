@@ -1,0 +1,15 @@
+[Unit]
+Description=campaign - daemon to send sms and do other massive tasks
+After=syslog.target network.target
+
+[Service]
+;RootDirectory=
+Environment=VIRTUAL_ENV=/usr/share/base_venv/
+Environment=PATH=$VIRTUAL_ENV/bin:$PATH
+WorkingDirectory=/usr/local/src/base-platform/scripts/
+ExecStart=/usr/bin/bash -c 'source /usr/share/base_venv/bin/activate; python3 campaign.py'
+User=peyman
+Group=peyman
+
+[Install]
+WantedBy=multi-user.target

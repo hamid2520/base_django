@@ -1,0 +1,60 @@
+from .base import *
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SITE_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+# Database
+# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+
+DEBUG = True
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db name',
+        'USER': 'user name',
+        'PASSWORD': 'password',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, '../db.sqlite3'),
+    # }
+}
+
+INSTALLED_APPS += [
+]
+
+HASHIDS = {
+    'ALPHABET': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789',
+    'MIN_LENGTH': 5,
+}
+
+INVATION_CODE = {
+    'DISCOUNT_HOST': 10,
+    'DISCOUNT_INVITED': 10,
+}
+
+# Internationalization
+# https://docs.djangoproject.com/en/2.1/topics/i18n/
+
+LOCALE_PATHS = (
+    os.path.join(SITE_ROOT, 'locale/'),
+)
+
+LANGUAGE_CODE = 'fa-ir'
+
+TIME_ZONE = 'Asia/Tehran'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = False
+
+KAVENEGAR_SMS_APIKEY = '********************************'
+KAVENEGAR_DEFAULT_SENDER_NUMBER = '1000******'
+
+API_BASEURL = 'http://*****:****'
