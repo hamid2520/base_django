@@ -2,7 +2,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework import HTTP_HEADER_ENCODING, exceptions
 from django.utils.translation import gettext_lazy as _
 
-from core.models import Education
+
 
 
 def get_authorization_header(request):

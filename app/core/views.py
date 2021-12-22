@@ -18,8 +18,6 @@ from operator import or_
 
 from . import serializers
 from . import models
-from .models import Sim, Bookmark, Exercise, Education, SimReport
-
 from .util.extend import StandardResultsSetPagination, RetrieveListViewSet, raise_not_field_error, \
     CreateRetrieveListUpdateDeleteViewSet, RetrieveListDeleteViewSet
 from .util.helper import play_filtering_form

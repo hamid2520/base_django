@@ -3,9 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from .util.extend import map_iran_fields
 from .util.helper import CellphoneField, is_valid_iran_national_id, NationalIdField
-from .models import Parameter, ExerciseData, Result, TokenSim, AccessList, UserMeta, VerificationSms, Contract, \
-    Education, Sim, Question, Answer, Exercise, Grade, Subject, Option, ExerciseReportDetail, SimReport, ExerciseReport, \
-    QuizReport, SimReportImg, Hashtag, UserPoint, Point, QuizReportDetail, SimAccessList, AppUser
+from .models import UserMeta, VerificationSms
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status

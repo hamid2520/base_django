@@ -20,13 +20,13 @@ Creating Database
 sudo su - postgres
 -bash-4.3$ createdb baser_test
 -bash-4.3$ psql
-postgres=# CREATE USER base_user WITH PASSWORD 'emami';
+postgres=# CREATE USER base_user WITH PASSWORD 'Hamid';
 CREATE ROLE
 postgres=# ALTER ROLE base_user SET client_encoding TO 'utf8';
 ALTER ROLE
 postgres=# ALTER ROLE base_user SET default_transaction_isolation TO 'read committed';
 ALTER ROLE
-postgres=# ALTER ROLE myprojectuser SET timezone TO 'Asia/Tehran';
+postgres=# ALTER ROLE base_user SET timezone TO 'Asia/Tehran';
 ERROR:  role "myprojectuser" does not exist
 postgres=# ALTER ROLE base_user SET timezone TO 'Asia/Tehran';
 ALTER ROLE
