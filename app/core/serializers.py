@@ -3,12 +3,12 @@ from django.contrib.auth.models import User
 from django.db import models
 from .util.extend import map_iran_fields
 from .util.helper import CellphoneField, is_valid_iran_national_id, NationalIdField
-from .models import UserMeta, VerificationSms
+from .models import School, UserMeta, VerificationSms
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponse
-from django.db.models import Q
+from django.db.models import Q, fields
 from django.conf import settings
 from django.templatetags.static import static
 import math
@@ -150,10 +150,10 @@ class UserMetaSerializer(serializers.ModelSerializer):
         hashids = Hashids(min_length=settings.HASHIDS['MIN_LENGTH'], alphabet=settings.HASHIDS['ALPHABET'])
         request = self.context.get('request')
         data = super(UserMetaSerializer, self).to_representation(instance)
-        data['point'] = instance.calculate_point(user=instance.user)
-        data['count_unread_message'] = instance.calculate_unread_message(user=instance.user)
-        data['defult_profile'] = settings.STATIC_URL + "core/img/" + str(instance.gender) + ".jpg"
-        data['invitation_code'] = hashids.encode(instance.user.id)
+        # data['point'] = instance.calculate_point(user=instance.user)
+        # data['count_unread_message'] = instance.calculate_unread_message(user=instance.user)
+        # data['defult_profile'] = settings.STATIC_URL + "core/img/" + str(instance.gender) + ".jpg"
+        # data['invitation_code'] = hashids.encode(instance.user.id)
         # data['gender'] = None
         # try:
         #     acc_list = instance.user.accesslist
@@ -396,3 +396,9 @@ class checkUserSerializer(serializers.Serializer):
         if not UserMeta.objects.filter(phone=phone).exists():
             raise serializers.ValidationError("کاربری با این شماره تلفن همراه ثبت نشده است .")
         return attrs
+
+
+class SchoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = School
+        fields = '__all__'

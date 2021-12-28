@@ -231,39 +231,31 @@ class UserMeta(models.Model):
     """User Meta To add extra details to user"""
 
     class Meta:
-        verbose_name = "ویژگی کاربر"
-        verbose_name_plural = "ویژگی کاربران"
+        verbose_name = "اطلاعات تکمیلی کاربر"
+        verbose_name_plural = "اطلاعات تکمیلی کاربران"
 
-    GENDER_MALE = 0
-    GENDER_FEMALE = 1
-    GENDER_UNKNOWN = 2
-    GENDER_CHOICES = (
-        (GENDER_MALE, 'پسر'),
-        (GENDER_FEMALE, 'دختر'),
-        (GENDER_UNKNOWN, 'نامعلوم'),
-    )
-
-    TYPE_STUFF = 0
-    TYPE_STUDENT = 1
-    TYPE_TEACHER = 2
-    TYPE_CHOICES = (
-        (TYPE_STUFF, 'نامعلوم'),
-        (TYPE_STUDENT, 'دانش آموز'),
-        (TYPE_TEACHER, 'معلم'),
+    USER_STUFF = 0
+    USER_EMPLOYER = 1
+    USER_EMPLOYMENT = 2
+    USER_IDEA = 3
+    USER_TYPE = (
+        (USER_STUFF, 'کاربر عادی'),
+        (USER_EMPLOYER, 'کارفرما'),
+        (USER_EMPLOYMENT, 'استخدامی'),
+        (USER_IDEA, 'شتابدهی'),
     )
 
     nid = models.CharField(max_length=20, null=True, unique=True)
     phone = models.CharField(max_length=11, null=True, unique=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email = models.CharField(max_length=11, null=True, unique=True)
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
     img_addr = models.FileField(upload_to=get_file_path, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    gender = models.SmallIntegerField(choices=GENDER_CHOICES, default=GENDER_UNKNOWN, null=True)
-    type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_STUFF, null=True)
+    # gender = models.SmallIntegerField(choices=GENDER_CHOICES, default=GENDER_UNKNOWN, null=True)
+    type = models.IntegerField(choices=USER_TYPE, default=USER_STUFF, null=True)
 
     def __str__(self):
-        return self.phone
-
-
+        return self.user.first_name +  " "  + self.user.last_name
 class Campaign(models.Model):
     TYPE_SMS = 1
     TYPE_EMAIL = 2
@@ -542,3 +534,91 @@ class MyAccountManager(BaseUserManager):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+
+# class Instructor(models.Model):
+#     class Meta:
+#         verbose_name = "سازنده"
+#         verbose_name_plural = "سازنده ها"
+#     title = models.CharField(max_length=20, null=True)
+
+#     def __str__(self):
+#         return self.title
+
+# class Car(models.Model):
+#     class Meta:
+#         verbose_name = "ماشین"
+#         verbose_name_plural = "ماشین ها"
+
+#     name = models.CharField(max_length=20, null=True)
+#     instructor = models.ManyToManyField(Instructor)
+
+#     def __str__(self):
+#         return self.name
+
+class Company(models.Model):
+    class Meta:
+        verbose_name = "شرکت"
+        verbose_name_plural = "شرکت ها"
+
+    name = models.CharField(max_length=50)
+    manager = models.CharField(max_length=50,null=True)
+    phone = models.CharField(max_length=11,null=True)
+    address = models.CharField(null=True)
+
+    def __str__(self):
+        return self.name
+
+class Employer(models.Model):
+    class Meta:
+        verbose_name = "اطلاعات کارفرما"
+        verbose_name_plural = "اطلاعات کارفرماها"
+
+        company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.DO_NOTHING)
+        user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+
+        def __str__(self):
+            return self.user.first_name + " " + self.user.last_name + " - " + self.company.name
+
+class Employment(models.Model):
+    class Meta:
+        verbose_name = "اطلاعات استخدامی"
+        verbose_name_plural = "اطلاعات استخدامی ها"
+
+    GENDER_MALE = 0
+    GENDER_FEMALE = 1
+    GENDER_NOTHING = 2
+    GENDER_TYPE = (
+        (GENDER_MALE, 'مذکر'),
+        (GENDER_FEMALE, 'مونث'),
+        (GENDER_NOTHING, 'نامشخص'),
+    )
+
+    MARITAL_SINGLE = 0
+    MARITAL_MARRIED = 1
+    MARITAL_STATUS = (
+        (MARITAL_SINGLE, 'مجرد'),
+        (MARITAL_MARRIED, 'متاهل'),
+    )  
+
+    SOLDIER_INCLUDED = 0
+    SOLDIER_EXEMPT = 1
+    SOLDIER_FINISH = 2
+    SOLDIER_STATUS = (
+        (SOLDIER_INCLUDED, 'مشمول'),
+        (SOLDIER_EXEMPT, 'معاف از خدمت'),
+        (SOLDIER_FINISH, 'پایان خدمت'),
+    ) 
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    birthday = models.DateTimeField(null=True)
+    place_of_birth = models.CharField(max_length=50,null=True)
+    religion = models.CharField(max_length=50,null=True)
+    gender = models.IntegerField(choices=GENDER_TYPE, default=GENDER_MALE, null=True)
+    marital = models.IntegerField(choices=MARITAL_STATUS, default=MARITAL_SINGLE, null=True)
+    soldier = models.IntegerField(choices=SOLDIER_STATUS, default=SOLDIER_INCLUDED, null=True)
+    phone = models.CharField(max_length=11,null=True)
+    address = models.CharField(null=True)
+
+    def __str__(self):
+            return self.user.first_name + " " + self.user.last_name
+
