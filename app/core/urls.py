@@ -8,8 +8,6 @@ from django.conf.urls.static import static
 
 router = routers.DefaultRouter()
 # router.register('subject', views.SubjectViewSet, basename='subject')
-router.register('school', views.SchoolViewSet, basename='school')
-
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', views.RegistrationView.as_view(), name='register'),

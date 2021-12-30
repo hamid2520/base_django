@@ -214,10 +214,3 @@ class LoginRequestCodeVerificationView(generics.CreateAPIView):
 class checkUserExistView(generics.CreateAPIView):
     serializer_class = serializers.checkUserSerializer
 
-
-class SchoolViewSet(CreateRetrieveListUpdateDeleteViewSet):
-    serializer_class = serializers.SchoolSerializer
-    queryset = models.School.objects.all()
-
-    def get_queryset(self):
-        return super().get_queryset()

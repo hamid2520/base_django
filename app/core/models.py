@@ -222,10 +222,33 @@ def get_file_path(instance, filename):
         filename = "%s.%s" % (uuid.uuid4(), ext)
         now = datetime.datetime.now()
         now.year, now.month
-        return "sim/{year}/{month}/{name}".format(year=now.year, month=now.month, name=filename)
+        return "image/{year}/{month}/{name}".format(year=now.year, month=now.month, name=filename)
+    elif ext in ['mp4', 'avi', 'mov', 'mkv']:
+        filename = "%s.%s" % (uuid.uuid4(), ext)
+        now = datetime.datetime.now()
+        now.year, now.month
+        return "video/{year}/{month}/{name}".format(year=now.year, month=now.month, name=filename)
+    elif ext in ['mp3', 'wav', 'wma', 'au', 'mid']:
+        filename = "%s.%s" % (uuid.uuid4(), ext)
+        now = datetime.datetime.now()
+        now.year, now.month
+        return "voice/{year}/{month}/{name}".format(year=now.year, month=now.month, name=filename)
+    elif ext in ['pdf', 'word', 'csv', 'xlsx']:
+        filename = "%s.%s" % (uuid.uuid4(), ext)
+        now = datetime.datetime.now()
+        now.year, now.month
+        return "file/{year}/{month}/{name}".format(year=now.year, month=now.month, name=filename)
     else:
-        raise ValidationError("فقط فرمت های  jpeg, png , jpg قابل قبول هستند !")
+        raise ValidationError("فقط فرمت های  معتبر مالتی مدیا و فایل قابل قبول هستند !")
 
+class MultiMedia(models.Model):
+    class Meta:
+        verbose_name = "فایل"
+        verbose_name_plural = "فایل ها"
+
+    file_addr = models.FileField(upload_to=get_file_path, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
 
 class UserMeta(models.Model):
     """User Meta To add extra details to user"""
@@ -249,8 +272,7 @@ class UserMeta(models.Model):
     phone = models.CharField(max_length=11, null=True, unique=True)
     email = models.CharField(max_length=11, null=True, unique=True)
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
-    img_addr = models.FileField(upload_to=get_file_path, null=True, blank=True)
-    uploaded_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    profile_image = models.OneToOneField(MultiMedia, blank=True, null=True, on_delete=models.DO_NOTHING)
     # gender = models.SmallIntegerField(choices=GENDER_CHOICES, default=GENDER_UNKNOWN, null=True)
     type = models.IntegerField(choices=USER_TYPE, default=USER_STUFF, null=True)
 
@@ -561,26 +583,57 @@ class Company(models.Model):
         verbose_name = "شرکت"
         verbose_name_plural = "شرکت ها"
 
+    COMPANY_HOLDING = 0
+    COMPANY_COMPANY = 1
+    COMPANY_INSTITUE = 2
+    COMPANY_STORE = 3
+    COMPANY_OTHER = 4
+    COMPANY_TYPE = (
+        (COMPANY_HOLDING, 'هلدینگ'),
+        (COMPANY_COMPANY, 'شرکت'),
+        (COMPANY_INSTITUE, 'موسسه'),
+        (COMPANY_STORE, 'فروشگاه'),
+        (COMPANY_OTHER, 'دیگر'),
+    )
+
+    ACTIVITY_PRODUCTION = 0
+    ACTIVITY_BUSINESS = 1
+    ACTIVITY_SERVICE = 2
+    ACTIVITY_INVESTMENT = 3
+    ACTIVITY_OTHER = 4
+    ACTIVITY_TYPE = (
+        (ACTIVITY_PRODUCTION, 'تولیدی'),
+        (ACTIVITY_BUSINESS, 'بازرگانی'),
+        (ACTIVITY_SERVICE, 'خدماتی'),
+        (ACTIVITY_INVESTMENT, 'سرمایه گذاری'),
+        (ACTIVITY_OTHER, 'دیگر'),
+    )
+
     name = models.CharField(max_length=50)
+    brand_name = models.CharField(max_length=50,null=True)
     manager = models.CharField(max_length=50,null=True)
     phone = models.CharField(max_length=11,null=True)
-    address = models.CharField(null=True)
+    address = models.TextField(null=True)
+    company_type = models.IntegerField(choices=COMPANY_TYPE, default=COMPANY_COMPANY, null=True)
+    activity_type = models.IntegerField(choices=ACTIVITY_TYPE, default=COMPANY_COMPANY, null=True)
+    mother_company = models.ForeignKey('Company', on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return self.name
 
 class Employer(models.Model):
+    
     class Meta:
         verbose_name = "اطلاعات کارفرما"
         verbose_name_plural = "اطلاعات کارفرماها"
 
-        company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.DO_NOTHING)
-        user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    company = models.ForeignKey(Company, blank=True, null=True, on_delete=models.DO_NOTHING)
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
 
-        def __str__(self):
-            return self.user.first_name + " " + self.user.last_name + " - " + self.company.name
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name + " - " + self.company.name
 
-class Employment(models.Model):
+class EmploymentPersonal(models.Model):
     class Meta:
         verbose_name = "اطلاعات استخدامی"
         verbose_name_plural = "اطلاعات استخدامی ها"
@@ -608,7 +661,8 @@ class Employment(models.Model):
         (SOLDIER_INCLUDED, 'مشمول'),
         (SOLDIER_EXEMPT, 'معاف از خدمت'),
         (SOLDIER_FINISH, 'پایان خدمت'),
-    ) 
+    )
+
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
     birthday = models.DateTimeField(null=True)
     place_of_birth = models.CharField(max_length=50,null=True)
@@ -617,8 +671,429 @@ class Employment(models.Model):
     marital = models.IntegerField(choices=MARITAL_STATUS, default=MARITAL_SINGLE, null=True)
     soldier = models.IntegerField(choices=SOLDIER_STATUS, default=SOLDIER_INCLUDED, null=True)
     phone = models.CharField(max_length=11,null=True)
-    address = models.CharField(null=True)
+    address = models.TextField(null=True)
 
     def __str__(self):
             return self.user.first_name + " " + self.user.last_name
 
+class EmploymentAcquaintances(models.Model):
+    class Meta:
+        verbose_name = "اطلاعات آشنایان استخدامی"
+        verbose_name_plural = "اطلاعات آشنایان استخدامی ها"
+
+    COMPANY_STATUS_NOT = 0
+    COMPANY_STATUS_YES = 1
+    COMPANY_STATUS = (
+        (COMPANY_STATUS_NOT, 'خیر'),
+        (COMPANY_STATUS_YES, 'بله'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    name = models.CharField(max_length=50,null=True)
+    phone = models.CharField(max_length=50,null=True)
+    family_relationship = models.CharField(max_length=50,null=True)
+    gender = models.IntegerField(choices=COMPANY_STATUS, default=COMPANY_STATUS_NOT, null=True)
+
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name + " - " + self.name
+
+class EmploymentEducation(models.Model):
+    class Meta:
+        verbose_name = "اطلاعات تحصیلی استخدامی"
+        verbose_name_plural = "اطلاعات تحصیلی استخدامی ها"
+
+    EDUCATION_ADEPTNESS = 0
+    EDUCATION_EXPERTISE = 1
+    EDUCATION_MASTER_DEGREE = 2
+    EDUCATION_PROFESSIONAL = 3
+    EDUCATION_OTHER = 4
+    EDUCATION_LEVEL = (
+        (EDUCATION_ADEPTNESS, 'کاردانی'),
+        (EDUCATION_EXPERTISE, 'کارشناسی'),
+        (EDUCATION_MASTER_DEGREE, 'کارشناسی ارشد'),
+        (EDUCATION_PROFESSIONAL, 'دکتری'),
+        (EDUCATION_OTHER, 'سایر'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    study = models.CharField(max_length=50,null=True)
+    propensity = models.CharField(max_length=50,null=True)
+    university = models.CharField(max_length=50,null=True)
+    uni_country = models.CharField(max_length=50,null=True)
+    uni_city = models.CharField(max_length=50,null=True)
+    grade = models.FloatField(null=True)
+    proof = models.IntegerField(choices=EDUCATION_LEVEL, default=EDUCATION_ADEPTNESS, null=True)
+
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name + " - " + self.get_proof_display()
+
+class EmploymentJob(models.Model):
+    class Meta:
+        verbose_name = "اطلاعات کاری استخدامی"
+        verbose_name_plural = "اطلاعات کاری استخدامی ها"
+
+    ASSIST_FULLTIME = 0
+    ASSIST_PARTTIME = 1
+    ASSIST_PROJECT = 2
+    ASSIST_TELEWORKING = 3
+    ASSIST_INTERNSHIP = 4
+    ASSIST_TYPE = (
+        (ASSIST_FULLTIME, 'تمام وقت'),
+        (ASSIST_PARTTIME, 'پاره وقت'),
+        (ASSIST_PROJECT, 'پروژه‌ای'),
+        (ASSIST_TELEWORKING, 'دور کاری'),
+        (ASSIST_INTERNSHIP, 'کارآموزی'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    company = models.CharField(max_length=50,null=True)
+    organization_level = models.CharField(max_length=50,null=True)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+    last_salary = models.SmallIntegerField(null=True)
+    job_description = models.TextField(null=True)
+    leave_reason = models.TextField(null=True)
+    resume = models.OneToOneField(MultiMedia, blank=True, null=True, on_delete=models.DO_NOTHING)
+    assist_type = models.IntegerField(choices=ASSIST_TYPE, default=ASSIST_FULLTIME, null=True)
+
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name + " - " + self.company
+
+class EmploymentProfessionalCourse(models.Model):
+    class Meta:
+        verbose_name = "دوره‌های تخصصی استخدامی"
+        verbose_name_plural = "دوره های تخصصی استخدامی ها"
+
+    PROOF_NOT = 0
+    PROOF_YES = 1
+    PROOF_STATUS = (
+        (PROOF_NOT, 'ندارد'),
+        (PROOF_YES, 'دارد'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    title = models.CharField(max_length=50,null=True)
+    duration = models.CharField(max_length=50,null=True)
+    description = models.TextField(null=True)
+    proof = models.IntegerField(choices=PROOF_STATUS, default=PROOF_NOT, null=True)
+
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name + " - " + self.title
+
+class EmploymentJobCondition(models.Model):
+    class Meta:
+        verbose_name = "شرایط کاری استخدامی"
+        verbose_name_plural = "شرایط کاری استخدامی ها"
+
+    ASSIST_FULLTIME = 0
+    ASSIST_PARTTIME = 1
+    ASSIST_PROJECT = 2
+    ASSIST_TELEWORKING = 3
+    ASSIST_INTERNSHIP = 4
+    ASSIST_TYPE = (
+        (ASSIST_FULLTIME, 'تمام وقت'),
+        (ASSIST_PARTTIME, 'پاره وقت'),
+        (ASSIST_PROJECT, 'پروژه‌ای'),
+        (ASSIST_TELEWORKING, 'دور کاری'),
+        (ASSIST_INTERNSHIP, 'کارآموزی'),
+    )
+
+    LONG_COOPERATION_NOT = 0
+    LONG_COOPERATION_YES = 1
+    LONG_COOPERATION_STATUS = (
+        (LONG_COOPERATION_NOT, 'خیر'),
+        (LONG_COOPERATION_YES, 'بله'),
+    )
+
+    FAST_LINK_MOBILE = 0
+    FAST_LINK_PHONE = 1
+    FAST_LINK_EMAIL = 2
+    FAST_LINK_TYPE = (
+        (FAST_LINK_MOBILE, 'شماره موبایل'),
+        (FAST_LINK_PHONE, 'تلفن ثابت'),
+        (FAST_LINK_EMAIL, 'ایمیل'),
+    )
+
+    CONFIRM_NOT = 0
+    CONFIRM_YES = 1
+    CONFIRM_STATUS = (
+        (CONFIRM_NOT, 'خیر'),
+        (CONFIRM_YES, 'بله'),
+    )
+
+    WAY_WEBSITE = 0
+    WAY_ADVERTISE = 1
+    WAY_FRIEND = 2
+    WAY_ORIENTED_WITH_US = (
+        (WAY_WEBSITE, 'وبسایت'),
+        (WAY_ADVERTISE, 'تبلیغات'),
+        (WAY_FRIEND, 'دوستان'),
+    )
+
+    JOB_PROMOTION = 0
+    CHANGE_JOB = 1
+    CREATE_BUSSINESS = 2
+    CONTINUE_EDUCATION = 3
+    JOB_STOP = 4
+    GOING_ABOARD = 5
+    LONG_TIME_PLAN = (
+        (JOB_PROMOTION, 'ارتقای شغل'),
+        (CHANGE_JOB, 'تغییر شغل'),
+        (CREATE_BUSSINESS, 'راه اندازی بیزینس'),
+        (CONTINUE_EDUCATION, 'ادامه تحصیل'),
+        (JOB_STOP, 'ترک کار'),
+        (GOING_ABOARD, 'رفتن به خارج از کشور'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    salary = models.SmallIntegerField(null=True)
+    start_date = models.DateTimeField(null=True)
+    reason_change_job = models.TextField(null=True)
+    reason_select_job = models.TextField(null=True)
+    reason_choice_you = models.TextField(null=True)
+    description = models.TextField(null=True)
+    assist_type = models.IntegerField(choices=ASSIST_TYPE, default=ASSIST_FULLTIME, null=True)
+    long_cooperation = models.IntegerField(choices=LONG_COOPERATION_STATUS, default=LONG_COOPERATION_NOT, null=True)
+    fast_link = models.IntegerField(choices=FAST_LINK_TYPE, default=FAST_LINK_MOBILE, null=True)
+    confirm = models.IntegerField(choices=CONFIRM_STATUS, default=CONFIRM_NOT, null=True)
+    way_oriented = models.IntegerField(choices=WAY_ORIENTED_WITH_US, default=WAY_WEBSITE, null=True)
+    long_time_plan = models.IntegerField(choices=LONG_TIME_PLAN, default=JOB_PROMOTION, null=True)
+
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name + " - " + self.salary
+
+class Recruitment(models.Model):
+    class Meta:
+        verbose_name = "آگهی استخدام"
+        verbose_name_plural = "آگهی های استخدام"
+
+    TECHNICAL = 0
+    OFFICIAL = 1
+    SERVICE = 2
+    MANAGER = 3
+    DEPARTMENT = (
+        (TECHNICAL, 'فنی'),
+        (OFFICIAL, 'اداری'),
+        (SERVICE, 'خدماتی'),
+        (MANAGER, 'مدیریتی'),
+    )
+
+    ASSIST_FULLTIME = 0
+    ASSIST_PARTTIME = 1
+    ASSIST_PROJECT = 2
+    ASSIST_TELEWORKING = 3
+    ASSIST_INTERNSHIP = 4
+    ASSIST_TYPE = (
+        (ASSIST_FULLTIME, 'تمام وقت'),
+        (ASSIST_PARTTIME, 'پاره وقت'),
+        (ASSIST_PROJECT, 'پروژه‌ای'),
+        (ASSIST_TELEWORKING, 'دور کاری'),
+        (ASSIST_INTERNSHIP, 'کارآموزی'),
+    )
+
+    title = models.CharField(max_length=50,null=True)
+    description = models.TextField(null=True)
+    salary = models.SmallIntegerField(null=True)
+    address = models.TextField(null=True)
+    department = models.IntegerField(choices=DEPARTMENT, default=TECHNICAL, null=True)
+    assist_type = models.IntegerField(choices=ASSIST_TYPE, default=ASSIST_FULLTIME, null=True)
+
+    def __str__(self):
+        return self.title
+
+class RecruitmentSkills(models.Model):
+    class Meta:
+        verbose_name = "مهارت آگهی استخدام"
+        verbose_name_plural = "مهارت های آگهی استخدام"
+
+    PUBLIC = 0
+    PRIVATE_REQUIRE = 1
+    PRIVATE_OPTIONAL = 2
+    SKILL_TYPE = (
+        (PUBLIC, 'اجتماعی'),
+        (PRIVATE_REQUIRE, 'اختصاصی (الزامی)'),
+        (PRIVATE_OPTIONAL, 'اختصاصی (اختیاری)'),
+    )
+
+    title = models.CharField(max_length=50,null=True)
+    skill = models.IntegerField(choices=SKILL_TYPE, default=PUBLIC, null=True)
+    recruitment = models.ForeignKey(Recruitment, on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return self.recruitment.title + " - " + self.title
+class Project(models.Model):
+    class Meta:
+        verbose_name = "پروژه"
+        verbose_name_plural = "پروژه ها"
+
+    title = models.CharField(max_length=50,null=True)
+
+    def __str__(self):
+        return self.title
+
+class FidarDetail(models.Model):
+
+    LOCAL = 0
+    REGIONAL = 1
+    NATIONAL = 2
+    INTERNATIONAL = 3
+    MARKET_RANGE = (
+        (LOCAL, 'محلی'),
+        (REGIONAL, 'منطقه ای'),
+        (NATIONAL, 'ملی'),
+        (INTERNATIONAL, 'بین المللی'),
+    )
+
+    WEBSITE_NOT = 0
+    WEBSITE_YES = 1
+    WEBSITE_STATUS = (
+        (WEBSITE_NOT, 'خیر'),
+        (WEBSITE_YES, 'بله'),
+    )
+
+    SOFTWARE_NOT = 0
+    SOFTWARE_YES = 1
+    SOFTWARE_STATUS = (
+        (SOFTWARE_NOT, 'خیر'),
+        (SOFTWARE_YES, 'بله'),
+    )
+
+    PROBLEM_1 = 0
+    PROBLEM_2 = 1
+    PROBLEM_3 = 2
+    PROBLEM_4 = 3
+    PROBLEM_5 = 4
+    PROBLEM_6 = 5
+    PROBLEM_7 = 6
+    PROBLEM_8 = 7
+    PROBLEM_9 = 8
+    PROBLEM_10 = 9
+    PROBLEM_11 = 10
+    SOFTWARE_PROBLEM = (
+        (PROBLEM_1, 'عدم یکپارچگی'),
+        (PROBLEM_2, 'عدم پاسخگویی به دامنه وسیع نیازها'),
+        (PROBLEM_3, 'قدیمی بودن تکنولوژی'),
+        (PROBLEM_4, 'تحت وب نبودن'),
+        (PROBLEM_5, 'تحلیل نرم افزاری ضعیف'),
+        (PROBLEM_6, 'بروز رسانی کم'),
+        (PROBLEM_7, 'رابط کاربری ضعیف'),
+        (PROBLEM_8, 'ضعف پشتیبانی'),
+        (PROBLEM_9, 'ضعف امنیتی'),
+        (PROBLEM_10, 'پیچیدگی'),
+        (PROBLEM_11, 'گرانی قیمت'),
+    )
+
+    WAY_WEBSITE = 0
+    WAY_ADVERTISE = 1
+    WAY_FRIEND = 2
+    WAY_ORIENTED_WITH_US = (
+        (WAY_WEBSITE, 'وبسایت'),
+        (WAY_ADVERTISE, 'تبلیغات'),
+        (WAY_FRIEND, 'آشنایان'),
+    )
+
+    CUSTOMER_1 = 0
+    CUSTOMER_2 = 1
+    CUSTOMER_3 = 2
+    CUSTOMER_4 = 3
+    CUSTOMER_5 = 4
+    CUSTOMER_6 = 5
+    CUSTOMER_TYPE = (
+        (CUSTOMER_1, 'مشتریان بالقوه'),
+        (CUSTOMER_2, 'مشتریان موجود'),
+        (CUSTOMER_3, 'نمایندگی ها و عاملین فروش'),
+        (CUSTOMER_4, 'تامین کنندگان'),
+        (CUSTOMER_5, 'کارکنان'),
+        (CUSTOMER_6, 'متقاضیان استخدام'),
+    )
+
+    REQUEST_1 = 0
+    REQUEST_2 = 1
+    REQUEST_3 = 2
+    REQUEST_4 = 3
+    REQUEST_5 = 4
+    REQUEST_6 = 5
+    REQUEST_7 = 6
+    REQUEST_8 = 7
+    REQUEST_9 = 8
+    REQUEST_10 = 9
+    REQUEST_11 = 10
+    REQUEST_12 = 11
+    EMPLOYER_REQUESTS = (
+        (REQUEST_1, 'افزایش فروش'),
+        (REQUEST_2, 'استانداردسازی فرآیندهای تجاری و سیستم‌سازی'),
+        (REQUEST_3, 'کاهش هزینه‌ها'),
+        (REQUEST_4, 'ایجاد یکپارچگی'),
+        (REQUEST_5, 'تقویت توان رقابتی'),
+        (REQUEST_6, 'تسلط اطلاعاتی بر کسب و کار'),
+        (REQUEST_7, 'تقویت جایگاه برند'),
+        (REQUEST_8, 'بهبود زنجیره تأمین'),
+        (REQUEST_9, 'گسترش دامنه جغرافیایی فعالیت کسب و کار'),
+        (REQUEST_10, 'ایجاد یکپارچگی'),
+        (REQUEST_11, 'افزایش بهره‌وری'),
+        (REQUEST_12, 'بهبود کیفیت خدمات پس از فروش '),
+    )
+
+    MODULE_1 = 0
+    MODULE_2 = 1
+    MODULE_3 = 2
+    MODULE_4 = 3
+    MODULE_5 = 4
+    MODULE_6 = 5
+    MODULE_7 = 6
+    MODULE_8 = 7
+    MODULE_9 = 8
+    MODULE_10 = 9
+    MODULE_11 = 10
+    MODULE_12 = 11
+    MODULE_13 = 12
+    MODULE_14 = 13
+    MODULE_15 = 14
+    MODULE_16 = 15
+    MODULE_17 = 16
+    MODULE_18 = 17
+    MODULE_LIST = (
+        (MODULE_1, 'بازاریابی و فروش'),
+        (MODULE_2, 'مالی و حسابداری'),
+        (MODULE_3, 'پایانه‌های فروش'),
+        (MODULE_4, 'منابع انسانی'),
+        (MODULE_5, 'توسعه و مدیریت شبکه فروش'),
+        (MODULE_6, 'مدیریت پروژه، برنامه‌ریزی و گزارش عملکرد'),
+        (MODULE_7, 'مدیریت انبار'),
+        (MODULE_8, 'امور قراردادها و مستندات'),
+        (MODULE_9, 'مدیریت وب سایت'),
+        (MODULE_10, 'تعاملات بین‌المللی'),
+        (MODULE_11, 'تجارت الکترونیکی و فروش آنلاین'),
+        (MODULE_12, 'پشتیبانی و خدمات پس از فروش'),
+        (MODULE_13, 'تولید'),
+        (MODULE_14, 'وویپ و تلفن'),
+        (MODULE_15, 'تعمیر و نگهداری'),
+        (MODULE_16, 'آموزش'),
+        (MODULE_17, 'کنترل کیفیت'),
+        (MODULE_18, 'حمل و نقل'),
+    )
+
+    class Meta:
+        verbose_name = "درخواست پروژه فیدار"
+        verbose_name_plural = "درخواست های پروژه فیدار"
+
+    project = models.ForeignKey(Project,default=1, on_delete=models.DO_NOTHING)
+    product_type = models.CharField(max_length=50,null=True)
+    hr_number = models.IntegerField(null=True)
+    it_man_number = models.IntegerField(null=True)
+    agency_number = models.IntegerField(null=True)
+    website_url = models.CharField(max_length=50,null=True)
+    software_name = models.CharField(max_length=50,null=True)
+    death_line = models.CharField(max_length=50,null=True)
+    website = models.IntegerField(choices=WEBSITE_STATUS, default=WEBSITE_NOT, null=True)
+    software = models.IntegerField(choices=SOFTWARE_STATUS, default=SOFTWARE_NOT, null=True)
+    market_range = models.IntegerField(choices=MARKET_RANGE, default=LOCAL, null=True)
+    software_problem = models.CharField(max_length=10, null=True) 
+    employer_request = models.CharField(max_length=10, null=True) 
+    module = models.CharField(max_length=10, null=True) 
+    way_oriented = models.IntegerField(choices=WAY_ORIENTED_WITH_US, default=WAY_WEBSITE, null=True)
+
+
+
+    
+    
